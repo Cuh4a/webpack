@@ -9,7 +9,7 @@ export default class Post { //экспортируем класс Post в index.
             title: this.title,
             date: this.date.toJSON(),
             img: this.img
-        })
+        }, null, 2)
     }
     
     get uppercaseTitle() {
