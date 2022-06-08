@@ -11,3 +11,7 @@
 *11.**npm i -D csv-loader** - *подключение loader для csv:*  
 *12.**npm install -D webpack-dev-server** - *подключение webpack к dev серверу:*  
 *13.**npm install --save-dev mini-css-extract-plugin** - *подключение css plugin:*  
+*14.**npm install --save-dev optimize-css-assets-webpack-plugin** - *подключение css plugin для оптимизации в режиме production:* 
+*15.**npm i -D less-loader** - *подключение less loader для работы с препроцессором less :*
+
+ 

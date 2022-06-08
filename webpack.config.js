@@ -1,16 +1,33 @@
 const path = require("path");
 const HTMLWebpackPugin = require("html-webpack-plugin"); //подключение webpack plugin HTML
-const { CleanWebpackPlugin } = require("clean-webpack-plugin") ;//подключение webpack plugin clean
+const {CleanWebpackPlugin} = require("clean-webpack-plugin"); //подключение webpack plugin clean
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const MiniCssExtractPligin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 
+// const { config } = require("process");
+
 const isDev = process.env.NODE_ENV === "development";
+const isProd = !isDev;
+
+console.log("Is DEV:", isDev);
 
 const optimizaion = () => {
-    
+    const config = {
+        splitChunks: {
+            chunks: "all"
+        }
+    }
+    if (isProd) {
+        config.minimizer = [
+            new OptimizeCssAssetsWebpackPlugin(),
+            new TerserWebpackPlugin()
+        ]
+    }
+    return config;
 }
+
 
 module.exports = {
     context: path.resolve(__dirname, "src"),
@@ -22,54 +39,49 @@ module.exports = {
         analytics: "./analytics.js"
     },
     output: {
-        filename: "[name].[contenthash].js",//общий файл в котором будут все файлы JS
-        path: path.resolve(__dirname, "dist")   //путь куда будут сложены файлы
+        filename: "[name].[contenthash].js", //общий файл в котором будут все файлы JS
+        path: path.resolve(__dirname, "dist") //путь куда будут сложены файлы
     },
     resolve: {
-        extensions: [".js", ".json", ".png"],//сюда вносим расширение которое не хотим писать в import подключении
+        extensions: [".js", ".json", ".png", ".css"], //сюда вносим расширение которое не хотим писать в import подключении
         alias: {
             "@models": path.resolve(__dirname, "src/models"),
             "@": path.resolve(__dirname, "src")
         }
     },
-    optimization: {
-        splitChunks: {
-            chunks: "all"
-        }
-    },
+    optimization: optimizaion(),
     devServer: {
-        port: 4200
+        port: 4200,
+
     },
     plugins: [ //массив с плагинами
         new HTMLWebpackPugin({
-            template: "./index.html", inject: 'body',
+            template: "./index.html",
+            inject: 'body',
             minify: {
-                collapseWhitespace: true
+                collapseWhitespace: isProd
             }
         }),
         new CleanWebpackPlugin(),
         new CopyWebpackPlugin({
-            patterns: [
-                {
-                    from: path.resolve(__dirname, 'src/assets/favicon.ico'),
-                    to: path.resolve(__dirname, 'dist')
-                }
-            ]
+            patterns: [{
+                from: path.resolve(__dirname, 'src/assets/favicon.ico'),
+                to: path.resolve(__dirname, 'dist')
+            }]
         }),
-        new MiniCssExtractPligin({
-            filename: "[name].[contenthash].css",//общий файл в котором будут все файлы css
+        new MiniCssExtractPlugin({
+            filename: "[name].[contenthash].css", //общий файл в котором будут все файлы css
         })
     ],
     module: {
-        rules: [
-            {
+        rules: [{
                 test: /\.css$/, //для import с расширением css
-                use: [
-                    {
-                        loader: MiniCssExtractPligin.loader,
-                        options: {},
+                use: [{
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        publicPath: path.resolve(__dirname, 'dist')
                     },
-                    "css-loader"]
+                }, 'css-loader']
             },
             {
                 test: /\.(png|jpg|svg|gif)$/,
@@ -86,6 +98,15 @@ module.exports = {
             {
                 test: /\.csv$/,
                 use: ["csv-loader"]
+            },
+            {
+                test: /\.less$/, //для import с расширением less
+                use: [{
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        publicPath: path.resolve(__dirname, 'dist')
+                    },
+                }, 'css-loader']
             }
         ]
     }
