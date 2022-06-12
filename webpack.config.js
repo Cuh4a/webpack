@@ -1,6 +1,6 @@
 const path = require("path");
 const HTMLWebpackPugin = require("html-webpack-plugin"); //подключение webpack plugin HTML
-const { CleanWebpackPlugin } = require("clean-webpack-plugin") ;//подключение webpack plugin clean
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");//подключение webpack plugin clean
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPligin = require("mini-css-extract-plugin");
 const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
@@ -22,8 +22,23 @@ const optimizaion = () => {
             new TerserWebpackPlugin()
         ]
     }
-
     return config;
+}
+
+const fileName = ext => isDev ? `[name].${ext}` : `[name].[fullhash].${ext}`;
+const cssLoaders = extra => {
+    const loaders = [
+        {
+            loader: MiniCssExtractPligin.loader,
+            options: {},
+        },
+        "css-loader"
+    ]
+    if (extra) {
+        loaders.push(extra)
+        
+    }
+    return loaders;
 }
 
 module.exports = {
@@ -36,7 +51,7 @@ module.exports = {
         analytics: "./analytics.js"
     },
     output: {
-        filename: "[name].[contenthash].js",//общий файл в котором будут все файлы JS
+        filename: fileName("js"),//общий файл в котором будут все файлы JS
         path: path.resolve(__dirname, "dist")   //путь куда будут сложены файлы
     },
     resolve: {
@@ -67,19 +82,14 @@ module.exports = {
             ]
         }),
         new MiniCssExtractPligin({
-            filename: "[name].[contenthash].css",//общий файл в котором будут все файлы css
+            filename: fileName("css"),//общий файл в котором будут все файлы css
         })
     ],
     module: {
         rules: [
             {
                 test: /\.css$/, //для import с расширением css
-                use: [
-                    {
-                        loader: MiniCssExtractPligin.loader,
-                        options: {},
-                    },
-                    "css-loader"]
+                use: cssLoaders()
             },
             {
                 test: /\.(png|jpg|svg|gif)$/,
@@ -99,13 +109,12 @@ module.exports = {
             },
             {
                 test: /\.less$/, //для import с расширением less
-                use: [
-                    {
-                        loader: MiniCssExtractPligin.loader,
-                        options: {},
-                    },
-                    "css-loader"]
+                use: cssLoaders("less-loader")
             },
+            {
+                test: /\.s[ac]ss$/, //для import с расширением less
+                use: cssLoaders("sass-loader")
+            }
         ]
     }
 }
