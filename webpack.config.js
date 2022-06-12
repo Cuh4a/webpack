@@ -1,18 +1,14 @@
 const path = require("path");
 const HTMLWebpackPugin = require("html-webpack-plugin"); //подключение webpack plugin HTML
-const {
-    CleanWebpackPlugin
-} = require("clean-webpack-plugin"); //подключение webpack plugin clean
+const { CleanWebpackPlugin } = require("clean-webpack-plugin") ;//подключение webpack plugin clean
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPligin = require("mini-css-extract-plugin");
 const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 
-
 const isDev = process.env.NODE_ENV === "development";
 const isProd = !isDev;
-
-console.log("Is DEV:", isDev);
+console.log("IS DEV:", isDev);
 
 const optimizaion = () => {
     const config = {
@@ -26,42 +22,25 @@ const optimizaion = () => {
             new TerserWebpackPlugin()
         ]
     }
+
     return config;
 }
-
-const fileName = ext => isDev ? `[name].${ext}` : `[name].[hash].${ext}`
-
-const cssLoaders = extra => {
-    const loaders = [{
-        loader: MiniCssExtractPlugin.loader,
-        options: {
-            publicPath: path.resolve(__dirname, 'dist')
-        },
-    }, 'css-loader']
-
-    if (extra) {
-        loaders.push(extra)
-    }
-
-    return loaders;
-}
-
 
 module.exports = {
     context: path.resolve(__dirname, "src"),
     mode: "development", //'это означает что мы все собираем в режиме разработки
     entry: { //две точки входа 
         // 1 точка входа:
-        main: ["@babel/polyfill", "./index.js"], //здесь подключаем главный файл js
+        main: "./index.js", //здесь подключаем главный файл js
         // 2 точка входа:
-        analytics: "./analytics.ts"
+        analytics: "./analytics.js"
     },
     output: {
-        filename: fileName('js'), //общий файл в котором будут все файлы JS
-        path: path.resolve(__dirname, "dist") //путь куда будут сложены файлы
+        filename: "[name].[contenthash].js",//общий файл в котором будут все файлы JS
+        path: path.resolve(__dirname, "dist")   //путь куда будут сложены файлы
     },
     resolve: {
-        extensions: [".js", ".json", ".png", ".css"], //сюда вносим расширение которое не хотим писать в import подключении
+        extensions: [".js", ".json", ".png"],//сюда вносим расширение которое не хотим писать в import подключении
         alias: {
             "@models": path.resolve(__dirname, "src/models"),
             "@": path.resolve(__dirname, "src")
@@ -69,32 +48,38 @@ module.exports = {
     },
     optimization: optimizaion(),
     devServer: {
-        port: 4200,
-
+        port: 4200
     },
     plugins: [ //массив с плагинами
         new HTMLWebpackPugin({
-            template: "./index.html",
-            inject: 'body',
+            template: "./index.html", inject: 'body',
             minify: {
                 collapseWhitespace: isProd
             }
         }),
         new CleanWebpackPlugin(),
         new CopyWebpackPlugin({
-            patterns: [{
-                from: path.resolve(__dirname, 'src/assets/favicon.ico'),
-                to: path.resolve(__dirname, 'dist')
-            }]
+            patterns: [
+                {
+                    from: path.resolve(__dirname, 'src/assets/favicon.ico'),
+                    to: path.resolve(__dirname, 'dist')
+                }
+            ]
         }),
-        new MiniCssExtractPlugin({
-            filename: fileName("css"), //общий файл в котором будут все файлы css
+        new MiniCssExtractPligin({
+            filename: "[name].[contenthash].css",//общий файл в котором будут все файлы css
         })
     ],
     module: {
-        rules: [{
+        rules: [
+            {
                 test: /\.css$/, //для import с расширением css
-                use: cssLoaders(),
+                use: [
+                    {
+                        loader: MiniCssExtractPligin.loader,
+                        options: {},
+                    },
+                    "css-loader"]
             },
             {
                 test: /\.(png|jpg|svg|gif)$/,
@@ -114,34 +99,13 @@ module.exports = {
             },
             {
                 test: /\.less$/, //для import с расширением less
-                use: cssLoaders("less-loader"),
+                use: [
+                    {
+                        loader: MiniCssExtractPligin.loader,
+                        options: {},
+                    },
+                    "css-loader"]
             },
-            {
-                test: /\.s[ac]ss$/, //для import с расширением Sass
-                use: cssLoaders("sass-loader"),
-            },
-            {
-                test: /\.m?js$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: ['@babel/preset-env'],
-                        plugins: ['@babel/plugin-proposal-class-properties']
-                    }
-                }
-            },
-            {
-                test: /\.m?ts$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: ['@babel/preset-env','@babel/preset-typescript'],
-                        plugins: ['@babel/plugin-proposal-class-properties']
-                    }
-                }
-            }
         ]
     }
 }
