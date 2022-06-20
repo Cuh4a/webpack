@@ -1,6 +1,6 @@
 const path = require("path");
 const HTMLWebpackPugin = require("html-webpack-plugin"); //подключение webpack plugin HTML
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");//подключение webpack plugin clean
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");//подключение webpack plugin clean/
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPligin = require("mini-css-extract-plugin");
 const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
@@ -36,24 +36,39 @@ const cssLoaders = extra => {
     ]
     if (extra) {
         loaders.push(extra)
-        
     }
     return loaders;
 }
 
+const babelOptions = preset => {
+    const opts = {
+        presets: ["@babel/preset-env"],
+        plugins: ["@babel/plugin-proposal-class-properties"]
+    }
+    if (preset) {
+        opts.presets.push(preset)
+    }
+    return opts;
+}
+
+
 module.exports = {
     context: path.resolve(__dirname, "src"),
+
     mode: "development", //'это означает что мы все собираем в режиме разработки
+
     entry: { //две точки входа 
         // 1 точка входа:
-        main: "./index.js", //здесь подключаем главный файл js
+        main: ["@babel/polyfill", "./index.js"], //здесь подключаем главный файл js
         // 2 точка входа:
         analytics: "./analytics.js"
     },
+
     output: {
         filename: fileName("js"),//общий файл в котором будут все файлы JS
-        path: path.resolve(__dirname, "dist")   //путь куда будут сложены файлы
+        path: path.resolve(__dirname, "dist"), //путь куда будут сложены файлы
     },
+
     resolve: {
         extensions: [".js", ".json", ".png"],//сюда вносим расширение которое не хотим писать в import подключении
         alias: {
@@ -61,10 +76,19 @@ module.exports = {
             "@": path.resolve(__dirname, "src")
         }
     },
+
+    performance: {
+        hints: false
+    },
+
     optimization: optimizaion(),
+
     devServer: {
         port: 4200
     },
+
+    // devtool: isDev ? "source-map" :  false,
+
     plugins: [ //массив с плагинами
         new HTMLWebpackPugin({
             template: "./index.html", inject: 'body',
@@ -72,6 +96,7 @@ module.exports = {
                 collapseWhitespace: isProd
             }
         }),
+
         new CleanWebpackPlugin(),
         new CopyWebpackPlugin({
             patterns: [
@@ -81,10 +106,12 @@ module.exports = {
                 }
             ]
         }),
+
         new MiniCssExtractPligin({
             filename: fileName("css"),//общий файл в котором будут все файлы css
         })
     ],
+
     module: {
         rules: [
             {
@@ -114,7 +141,31 @@ module.exports = {
             {
                 test: /\.s[ac]ss$/, //для import с расширением less
                 use: cssLoaders("sass-loader")
-            }
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader",
+                    options: babelOptions(),
+                }
+            },
+            {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader",
+                    options: babelOptions("@babel/preset-typescript"),
+                }
+            },
+            {
+                test: /\.jsx$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader",
+                    options: babelOptions("@babel/preset-react"),
+                }
+            },
         ]
     }
 }

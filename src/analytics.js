@@ -1,7 +1,7 @@
 import * as $ from "jquery"
 
 
-function createAnalytics () {
+function createAnalytics() {
     let counter = 0;
     let destroyed = false;
 
@@ -10,15 +10,15 @@ function createAnalytics () {
     $(document).off('click', listener)
 
     return {
-        destroy () {
+        destroy() {
             $(document).on('click', listener)
             destroyed = true;
         },
-        getClicks () {
+        getClicks() {
             if (destroyed) {
                 return `"Analytics is destroyed. Total clicks = ${counter}"`
             }
-            return counter
+            return counter;
         }
     }
 }

@@ -23,3 +23,10 @@ h1 {
 .code {
     color: red;
 }
+.logo-1 {
+    background-image: url("../assets/1111.jpg");
+    background-size: cover;
+    height: 200px;
+    width:400px;
+    margin: 0 auto;
+}

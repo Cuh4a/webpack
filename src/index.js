@@ -14,6 +14,17 @@ const post = new Post('Webpack Post title', WebpackLogo);
 $("pre").addClass("code").html(post.toSttring())
 
 console.log('Post to String:', post.toSttring());
+
+const app = document.getElementById('app');
+
+const createDivPhoto = () => {
+   const div = document.createElement('div');
+    div.classList.add('logo-1');
+   app.append(div);
+}
+
+createDivPhoto()
+
 // console.log("JSON:", json);
 // console.log("XML:", xml);
 // console.log("CSV:", csv);
